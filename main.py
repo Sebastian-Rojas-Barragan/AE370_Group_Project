@@ -186,12 +186,6 @@ class chamber_solver:
         nonzero = magnitudes[magnitudes > tol]
         eigenvalue_ratio = np.max(nonzero) / np.min(nonzero) if nonzero.size else np.nan
 
-        print("Inlet Jacobian (state order: rho, T, V, Y1, Y2, Y3):")
-        print(J0)
-        print("Spatial eigenvalues [1/m]:")
-        print(eigenvalues)
-        print("Eigenvalue ratio (max |lambda| / min nonzero |lambda|):")
-        print(eigenvalue_ratio)
         return J0, eigenvalues
 
     def stability_along_solution(self, x, states):
@@ -230,12 +224,6 @@ class chamber_solver:
         if np.isfinite(ratios).any():
             locations.append(("Largest eigenvalue magnitude ratio", np.nanargmax(ratios)))
 
-        for label, k in locations:
-            print(f"\n{label}: x = {x[k]*1e6:.6g} µm, T = {states[k, 1]:.6g} K")
-            print("Eigenvalues [1/m]:", E[k])
-            print("Eigenvalue ratio:", ratios[k])
-            print("Decaying-mode FE limit [m]:", dx_lim[k])
-
         fig, (axE, axDx) = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
         axE.plot(x*1e6, growth, label="max Re(lambda)")
         axE.plot(x*1e6, E.real.min(axis=1), label="min Re(lambda)")
@@ -271,9 +259,6 @@ class chamber_solver:
 
         def J(*y):
             return J_h(*y, h1, h2, h3)
-
-        print("step, x [m], Y_O2, Y_H2, Y_H2O", flush=True)
-        print(f"{k}, {x[-1]:.8e}, {states[-1][3]:.8e}, {states[-1][4]:.8e}, {states[-1][5]:.8e}", flush=True)
 
         while states[-1][3] > Y_tol and states[-1][4] > Y_tol:
             # Hold h fixed during this implicit solve, evaluated at the old state.
@@ -402,15 +387,3 @@ class chamber_solver:
         plt.tight_layout()
         plt.show()
 
-if __name__ == "__main__":
-    Ar = 1.8e13 / np.sqrt(1000.0)
-    Ea = 17614.0 * 8.314e3
-    test = chamber_solver(5, 3e6, 0.3, 1, Ar, Ea)
-    J0, eigenvalues = test.stiffness()
-    x, states = test.solve(dx=1e-9, Y_tol=1e-6)
-    E, ratios, dx_lim = test.stability_along_solution(x, states)
-
-    print("Outlet state [rho, T, V, Y1, Y2, Y3]:")
-    print(states[-1])
-
-    test.plot_tube(states, x)
