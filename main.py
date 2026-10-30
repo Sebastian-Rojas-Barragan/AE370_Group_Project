@@ -188,7 +188,7 @@ class chamber_solver:
 
         return J0, eigenvalues
 
-    def stability_along_solution(self, x, states):
+    def stability_along_solution(self, x, states, mdot, Pt, D, phi):
         """Scan every saved state using the solver's frozen-property Jacobian.
 
         Enthalpies are evaluated locally but held fixed in differentiation,
@@ -220,7 +220,7 @@ class chamber_solver:
         k_growth = np.argmax(growth)
         locations = [("Largest real eigenvalue", k_growth)]
         if np.isfinite(dx_lim).any():
-            locations.append(("Smallest decaying-mode forward Euler limit", np.argmin(dx_lim)))
+            locations.append(("Forward Euler limit", np.argmin(dx_lim)))
         if np.isfinite(ratios).any():
             locations.append(("Largest eigenvalue magnitude ratio", np.nanargmax(ratios)))
 
@@ -235,6 +235,7 @@ class chamber_solver:
         axDx.semilogy(x[1:]*1e6, np.diff(x), label="Actual backward Euler step")
         axDx.set_ylabel("Step size [m]")
         axDx.set_xlabel("x (µm)")
+        fig.suptitle(f"Eigenvalues and step sizes for mdot = {mdot}, Pt = {Pt}, D = {D}, phi = {phi}")
         axDx.legend()
         for ax in (axE, axDx):
             ax.grid(alpha=0.3)
