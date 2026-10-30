@@ -380,7 +380,7 @@ class chamber_solver:
             plt.colorbar(label=f"{name} ({units})")
             plt.tight_layout()
             plt.xlim(x_be[0] * 1e6, x_be[-1] * 1e6)
-            plt.show()
+        plt.show()
 
 if __name__ == "__main__":
     Ar = 1.8e13 / np.sqrt(1000.0)
@@ -393,25 +393,4 @@ if __name__ == "__main__":
     print("Outlet state [rho, T, V, Y1, Y2, Y3]:")
     print(states[-1])
 
-    fig, (axY, axT, axR, axV) = plt.subplots(
-        4, 1, figsize=(8, 13), sharex=True
-    )
-    xm = x * 1e6
-    axY.plot(xm, states[:, 3], label="O₂")
-    axY.plot(xm, states[:, 4], label="H₂")
-    axY.plot(xm, states[:, 5], label="H₂O")
-    axY.set_ylabel("Mass fraction")
-    axY.legend()
-
-    axT.plot(xm, states[:, 1])
-    axT.set_ylabel("T (K)")
-    axR.plot(xm, states[:, 0])
-    axR.set_ylabel("ρ (kg/m³)")
-    axV.plot(xm, states[:, 2])
-    axV.set_ylabel("V (m/s)")
-    axV.set_xlabel("x (µm)")
-
-    for ax in (axY, axT, axR, axV):
-        ax.grid(alpha=0.3)
-    plt.tight_layout()
-    plt.show()
+    test.plot_tube(states, x)
