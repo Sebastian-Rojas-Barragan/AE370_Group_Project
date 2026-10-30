@@ -1,4 +1,5 @@
 #Imports
+
 from functools import lru_cache
 import numpy as np
 import numpy.linalg as la
@@ -319,6 +320,67 @@ class chamber_solver:
         state0, R, gamma, h1, h2, h3 = self.initial_conditions()
         return self.backward_euler(dx, state0, R, gamma, h1, h2, h3,
                                    Y_tol, max_steps, settle_tol)
+
+    def plot_tube(self, U_be, x_be):
+        rho, T, V, Y1, Y2, Y3 = np.asarray(U_be).T
+
+        Mw = 1 / (
+            Y1/self.MW_O2 +
+            Y2/self.MW_H2 +
+            Y3/self.MW_H2O
+        )
+
+        R = self.Ru / Mw
+        p = rho * R * T
+
+        gas = ct.Solution("h2o2.yaml")
+        gamma = np.zeros_like(T)
+
+        for i in range(len(T)):
+            gas.TPY = T[i], p[i], {
+                "O2": Y1[i],
+                "H2": Y2[i],
+                "H2O": Y3[i]
+            }
+            gamma[i] = gas.cp_mass / gas.cv_mass
+
+        Mach = V / np.sqrt(gamma * R * T)
+        radius = self.D / 2
+
+        fields = [
+            (rho, "Density", "kg/m³"),
+            (p, "Pressure", "Pa"),
+            (T, "Temperature", "K"),
+            (V, "Velocity", "m/s"),
+            (Mach, "Mach number", ""),
+            (Y1, "Oxygen mass fraction", ""),
+            (Y2, "Hydrogen mass fraction", ""),
+            (Y3, "Water mass fraction", "")
+        ]
+
+        for values, name, units in fields:
+            X = np.tile(x_be * 1e6, (100, 1))
+            Y = np.linspace(-radius, radius, 100)[:, None] * np.ones_like(X)
+            Z = np.tile(values, (100, 1))
+
+            Z[Y**2 > radius**2] = np.nan
+
+            plt.figure(figsize=(12, 3))
+            plt.pcolormesh(
+                X,
+                Y * 1e3,
+                Z,
+                shading="auto",
+                cmap="turbo"
+            )
+
+            plt.xlabel("Axial position (µm)")
+            plt.ylabel("Tube radius (mm)")
+            plt.title(name)
+            plt.colorbar(label=f"{name} ({units})")
+            plt.tight_layout()
+            plt.xlim(x_be[0] * 1e6, x_be[-1] * 1e6)
+            plt.show()
 
 if __name__ == "__main__":
     Ar = 1.8e13 / np.sqrt(1000.0)
