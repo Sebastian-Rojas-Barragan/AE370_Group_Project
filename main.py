@@ -358,15 +358,28 @@ class chamber_solver:
             (Y3, "Water mass fraction", "")
         ]
 
-        for values, name, units in fields:
-            X = np.tile(x_be * 1e6, (100, 1))
-            Y = np.linspace(-radius, radius, 100)[:, None] * np.ones_like(X)
-            Z = np.tile(values, (100, 1))
+        # Tube coordinates
+        X = np.tile(x_be * 1e6, (100, 1))
+        Y = np.linspace(-radius, radius, 100)[:, None] * np.ones_like(X)
 
-            Z[Y**2 > radius**2] = np.nan
+        # Circular tube boundary
+        mask = Y**2 > radius**2
 
-            plt.figure(figsize=(12, 3))
-            plt.pcolormesh(
+        fig, axes = plt.subplots(
+            4, 2,
+            figsize=(16, 14),
+            sharex=True,
+            sharey=True
+        )
+
+        axes = axes.flatten()
+
+        for ax, (values, name, units) in zip(axes, fields):
+
+            Z = np.tile(values, (100, 1)).copy()
+            Z[mask] = np.nan
+
+            mesh = ax.pcolormesh(
                 X,
                 Y * 1e3,
                 Z,
@@ -374,12 +387,19 @@ class chamber_solver:
                 cmap="turbo"
             )
 
-            plt.xlabel("Axial position (µm)")
-            plt.ylabel("Tube radius (mm)")
-            plt.title(name)
-            plt.colorbar(label=f"{name} ({units})")
-            plt.tight_layout()
-            plt.xlim(x_be[0] * 1e6, x_be[-1] * 1e6)
+            ax.set_title(name)
+            ax.set_ylabel("Tube radius (mm)")
+            ax.set_xlabel("Axial position (µm)")
+
+            fig.colorbar(
+                mesh,
+                ax=ax,
+                label=f"{name} ({units})"
+            )
+
+        fig.suptitle("Reaction Visualization", fontsize=16)
+
+        plt.tight_layout()
         plt.show()
 
 if __name__ == "__main__":
