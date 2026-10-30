@@ -1,5 +1,5 @@
 #Imports
-
+#%pip install cantera
 from functools import lru_cache
 import numpy as np
 import numpy.linalg as la
@@ -306,7 +306,7 @@ class chamber_solver:
         return self.backward_euler(dx, state0, R, gamma, h1, h2, h3,
                                    Y_tol, max_steps, settle_tol)
 
-    def plot_tube(self, U_be, x_be):
+    def plot_tube(self, U_be, x_be, named):
         rho, T, V, Y1, Y2, Y3 = np.asarray(U_be).T
 
         Mw = 1 / (
@@ -382,7 +382,7 @@ class chamber_solver:
                 label=f"{name} ({units})"
             )
 
-        fig.suptitle("Reaction Visualization", fontsize=16)
+        fig.suptitle(f"Reaction Visualization for {named:<8}", fontsize=16)
 
         plt.tight_layout()
         plt.show()
